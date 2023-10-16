@@ -8,6 +8,7 @@ import java.util.Scanner;
 
 import mru.game.model.Player;
 import mru.game.view.AppMenu;
+import mru.game.view.GameMenu;
 
 
 public class GameManager {
@@ -24,11 +25,13 @@ public class GameManager {
 	ArrayList<Player> players; 
 	AppMenu appMen;
 	PuntoBancoGame pbg;
-	Guess gs;
+	GameMenu gameMenu;
 	
 	public GameManager() throws Exception {
 		players = new ArrayList<>();
 		appMen = new AppMenu();
+		gameMenu = new GameMenu();
+		pbg = new PuntoBancoGame();
 		
 		
 		loadData();
@@ -59,30 +62,61 @@ public class GameManager {
 		
 	}
 
-	private void playGame() {
+	private void playGame() throws IOException {
 		String name = appMen.promptName();
 		Player p = searchByName(name);
-		int intWin = 0;
 		
 		if (p == null) {
-			
-			String id = appMen.promptId();
-			players.add(new Player (name, id, intWin));
-			
+			players.add(new Player (name, 100, 0));
+			p = searchByName(name);
+			gameMenu.showNewMenu(p);
+		}
+		else {
+			gameMenu.showExistingMenu(p);
 		}
 		
-		gs = new Guess();
-		boolean win = gs.lunchGame();
-		if (win) {
-			for (Player pl: players) {
-				if (pl.getName().equals(name)) {
-					int num = pl.getNumberOfWins();
-					pl.setNumOfWins(num+1);
-				}
-			}
+		if (p.getBalance() == 0){
+			System.out.println("Your balance is too low to play! ");
+			launchApplication();
 		}
+		else {
+			startGame(p);
+		}
+	}
+
+	private void startGame(Player p) {
+		char betOn = BetOn();
+		int betAmount = BetAmount(p);
 		
-	
+		String result = pbg.startNewGame(betOn);
+		
+		gameMenu.showGameEndMenu(betAmount, result, pbg.getPlayerCards(), pbg.getBankerCards(), pbg.getPlayerScore(), pbg.getBankerScore() );
+		
+		if (result.equals("Win")) {
+			p.setBalance(betAmount);
+		}
+		else if (result.equals("tieWin")) {
+			p.setBalance(betAmount*5);
+		}
+		else {
+			p.setBalance(-betAmount);
+		}
+		char playAgain = appMen.promptNewGame();
+		if (playAgain == 'y') {
+			startGame(p);
+		}
+	}
+
+	private char BetOn() {
+		char option = gameMenu.showBetMenu();
+
+		return option;
+	}
+
+	private int BetAmount(Player p) {
+		int option = gameMenu.showBetAmountMenu(p);
+		
+		return option;
 	}
 
 	private void Search() {
@@ -156,7 +190,7 @@ public class GameManager {
 				
 				currentLine = fileReader.nextLine();
 				splittedLine = currentLine.split(";");
-				Player p = new Player(splittedLine[0], splittedLine[1], Integer.parseInt(splittedLine[2]));
+				Player p = new Player(splittedLine[0], Integer.parseInt(splittedLine[1]), Integer.parseInt(splittedLine[2]));
 				players.add(p);
 				
 			}

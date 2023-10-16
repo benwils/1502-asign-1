@@ -21,7 +21,7 @@ public class AppMenu {
 	    System.out.println("\t1. Play Game");
 	    System.out.println("\t2. Search");
 	    System.out.println("\t3. Save and Exit\n");
-	    System.out.println("Enter a number here:");
+	    System.out.print("Enter a number here:");
 	    int option;
 	    
 	    while (true) {
@@ -43,7 +43,7 @@ public class AppMenu {
 	    System.out.println("\t(T) Top Player");
 	    System.out.println("\t(S) Search by Name");
 	    System.out.println("\t(B) Back to Main menu\n");
-	    System.out.println("Enter a character here:");
+	    System.out.print("Enter a character here:");
 	    char option;
 
 	    while (true) {
@@ -61,8 +61,9 @@ public class AppMenu {
 	}
     
     public String promptName() {
-    	System.out.println("Enter a name here:");
-    	String name = input.nextLine().trim().toLowerCase();
+    	System.out.print("\nEnter a name here:");
+    	String name = input.next().trim().toLowerCase();
+    	input.nextLine();
     	return name;
     }
     
@@ -94,6 +95,15 @@ public class AppMenu {
 
     public static boolean areAllDigits(String s) {
         return s.matches("\\d+");
+    }
+    
+    public char promptNewGame() {
+    	System.out.print("\nDo you want to play again(Y/N)?");
+    	String userInput = input.nextLine();
+
+        char option = Character.toLowerCase(userInput.charAt(0));
+    	
+    	return option;
     }
 }
 
