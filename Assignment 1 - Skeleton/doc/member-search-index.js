@@ -1,0 +1,1 @@
+memberSearchIndex = [{"p":"mru.game.controller","c":"GameManager","l":"GameManager()","url":"%3Cinit%3E()"}]

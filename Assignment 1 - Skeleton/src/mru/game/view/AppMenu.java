@@ -2,20 +2,28 @@ package mru.game.view;
 
 import java.util.Scanner;
 
-import mru.game.model.Player;
+/**
+ * 
+ * shows the menus and sub menus
+ * @author benwils and aiden20217
+ * @version final
+ */
+
 
 public class AppMenu {
 
-    /**
-     * shows the menus and sub menus
-     * @author Ben
-     */
-	Scanner input;
+	public Scanner input;
 	
+	/**
+	 * default constructor
+	 */
 	public AppMenu() {
 		input = new Scanner(System.in);
 	}
-    
+    /**
+     * lets players input if they want to play the game or search
+     * @return
+     */
 	public int showMainMenu() {
 	    System.out.println("select an option:\n");
 	    System.out.println("\t1. Play Game");
@@ -27,7 +35,10 @@ public class AppMenu {
 	}
 	    
 	    
-    
+    /**
+     * lets players input if they want to search for top player, a certain player to back to menu
+     * @return
+     */
 	public char showSubMenu() {
 	    System.out.println("select an option:\n");
 	    System.out.println("\t(T) Top Player");
@@ -43,22 +54,30 @@ public class AppMenu {
 	    return option;
 	}
     
-    public String promptName() {
-    	System.out.println("Enter a name here:");
-    	String name = input.nextLine().trim();
-    	name = name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+	/**
+	 * prompts the user to input their name 
+	 * @return
+	 */
+	public String promptName() {
+    	System.out.print("\nEnter a name here:");
+    	String name = input.next().trim().toLowerCase();
+    	input.nextLine();
     	return name;
     }
     
-    public void showPlayer(Player ply) {
-    		System.out.println(ply);
-    }    	
-    public String promptBal() {
-        System.out.println("Enter a bal here:");
-        String bal = input.nextLine().trim();
-        return bal;
-    }
+	/**
+	 * prompts the user after the game if they want to play again or exit
+	 * @return
+	 */
+	public char promptNewGame() {
+		System.out.print("\nDo you want to play again(Y/N)?");
+		String userInput = input.nextLine();
+
+		char option = Character.toLowerCase(userInput.charAt(0));
+	
+		return option;
 }
+	}
 
 
 	

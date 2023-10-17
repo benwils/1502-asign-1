@@ -4,35 +4,50 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import mru.game.model.Player;
 import mru.game.view.AppMenu;
+import mru.game.view.GameMenu;
 
+/**
+ * 
+ * This class laods and the txt file into an array list and is 
+ * able to save and store the array list to the txt file.
+ * 
+ *@author benwils and Aiden20217
+ *@version final
+ */
 
 public class GameManager {
+
+	private final String FILE_PATH = "res/CasinoInfo.txt";
+	public ArrayList<Player> players; 
+	public AppMenu appMen;
+	PuntoBancoGame pbg;
+	GameMenu gameMenu;
 	
 	/**
-	 * 
-	 * this class laods and the txt file into an array list and is able to save and store the array list to the txt file 
-	 *@author ben
+	 * defualt constructor initializes the players arraylist, appMen, gameMenu, and pbg.
+	 * loads the data for the players and launches the application
+	 * @throws Exception
 	 */
-	private final String FILE_PATH = "res/CasinoInfo.txt";
-	ArrayList<Player> players; 
-	AppMenu appMen;
-	PuntoBancoGame pbg;
-	Guess gs;
-	
 	public GameManager() throws Exception {
 		players = new ArrayList<>();
 		appMen = new AppMenu();
+		gameMenu = new GameMenu();
+		pbg = new PuntoBancoGame();
 		
 		
 		loadData();
 		launchApplication();
 	}
-	// main menu
-	private void launchApplication() throws IOException {
+	/**
+	 * lets player input a new to play the game, search, or save their game
+	 * @throws IOException
+	 */
+private void launchApplication() throws IOException {
 		
 		boolean flag = true;
 		int option;
@@ -50,90 +65,168 @@ public class GameManager {
 			case 3:
 				Save();
 				flag = false;
-			}
+				break;
+			}}
 			
 		}
-		
-	}
 
-	private void playGame() {
-		String name = appMen.promptName().toUpperCase();
+	/**
+	 * checks if the player is new or returning then gives them $100 if they are new or tells them their balance is too low
+	 * to play else it starts the game
+	 * @throws IOException
+	 */
+	public void playGame() throws IOException {
+		String name = appMen.promptName();
+		name = name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
 		Player p = searchByName(name);
-		int intWin = 0;
+		
 		if (p == null) {
-			
-			String bal = appMen.promptBal();
-			players.add(new Player (name, bal, intWin));
-			
+			players.add(new Player (name, 100, 0));
+			p = searchByName(name);
+			gameMenu.showNewMenu(p);
+		}
+		else {
+			gameMenu.showExistingMenu(p);
 		}
 		
-		gs = new Guess();
-		boolean win = gs.lunchGame();
-		if (win) {
-			for (Player pl: players) {
-				if (pl.getName().equals(name)) {
-					int num = pl.getNumberOfWins();
-					pl.setNumOfWins(num+1);
-				}
-			}
+		if (p.getBalance() == 0){
+			System.out.println("Your balance is too low to play! ");
+			launchApplication();
 		}
-		
-	
+		else {
+			startGame(p);
+		}
 	}
-	// sub menu
+	/**
+	 * starts the game, sets the balance if they have won or tied and lets the player play again
+	 * @param p
+	 */
+	private void startGame(Player p) {
+		char betOn = BetOn();
+		int betAmount = BetAmount(p);
+		
+		String result = pbg.startNewGame(betOn);
+		
+		gameMenu.showGameEndMenu(betAmount, result, pbg.getPlayerCards(), pbg.getBankerCards(), pbg.getPlayerScore(), pbg.getBankerScore() );
+		
+		if (result.equals("Win")) {
+			p.setBalance(betAmount);
+		}
+		else if (result.equals("tieWin")) {
+			p.setBalance(betAmount*5);
+		}
+		else {
+			p.setBalance(-betAmount);
+		}
+		char playAgain = appMen.promptNewGame();
+		if (playAgain == 'y') {
+			startGame(p);
+		}
+	}
+	/**
+	 * opens the menu for the player to choose who they bet on
+	 * @return
+	 */
+	private char BetOn() {
+		char option = gameMenu.showBetMenu();
+
+		return option;
+	}
+	/**
+	 * opens the menu for the player to input their bet amount
+	 * @param p
+	 * @return
+	 */
+	private int BetAmount(Player p) {
+		int option = gameMenu.showBetAmountMenu(p);
+		
+		return option;
+	}
+	
+	
+
+	/**
+	 * sub menu for if the player wants to find the top player, search for a certain player or go back to main menu
+	 */
 	private void Search() {
 		char option = appMen.showSubMenu();
 		
 		switch(option) {
 		case 't':
-			FindTopPlayer();
+			FindTopPlayers();
 			break;
 		case 's':
 			String name = appMen.promptName();
 			Player ply = searchByName(name);
-			appMen.showPlayer(ply);
+			System.out.println("                         - PLAYER INFO -                      "
+	                + "\n+===================+========================+=======================+"
+	                + "\n|NAME               |# WINS                  |BALANCE                |"
+	                + "\n+===================+========================+=======================+"
+	                + "\n|" + String.format("%-19s", ply.getName()) + "|" + String.format("%-24s", ply.getNumberOfWins()) + "|$" + String.format("%-22s", ply.getBalance()) + "|"
+	                + "\n+-------------------+------------------------+-----------------------+"
+	            );
 			break;
 		case 'b':
 			break;
 		}
 	}
+	/**
+	 * takes in a input to search for a player
+	 * @param name
+	 * @return
+	 */
+	public Player searchByName(String name) {
+	    Player ply = null;
 
-	private Player searchByName(String name) {
-		
-		Player ply = null;
-		
-		
-		for(Player p: players) {
-			if (p.getName().equals(name)) {
-				ply = p;
-				break;
-		}
-		}
-		return ply;
+	    for(Player p: players) {
+	        if (p.getName().equalsIgnoreCase(name)) {
+	            ply = p;
+	            break;
+	        }
+	    }
+
+	    if (ply != null) {
+	        String capitalizedFirstName = ply.getName().substring(0, 1).toUpperCase() + ply.getName().substring(1).toLowerCase();
+	        ply.setName(capitalizedFirstName);
+	    }
+
+	    return ply;
 	}
 		
-	// finds and displays the players with the top score
-	private void FindTopPlayer() {
-		Player topPlayer = players.get(0);
+	
+	
 		
-		for (int i = 1; i<players.size(); i++) {
-			Player currentPlayer = players.get(i);
-			if (currentPlayer.getNumberOfWins() > topPlayer.getNumberOfWins()) {
-				topPlayer = currentPlayer;
-			}
-		}
-		System.out.println("			 - TOP PLAYERS -					  "
-				           + "\n+===================+========================+"
-				           + "\n|NAME               |# WINS                  |"
-				           + "\n+===================+========================+"
-				           + "\n|Khosro             |18                      |"
-				           + "\n+-------------------+------------------------+"
-				           + "\n|Eli                |18                      |"
-				           + "\n+-------------------+------------------------+"
-				           );
-		
+	/**
+	 * finds the players with the top scores
+	 */
+	public void FindTopPlayers() {
+	    List<Player> topPlayers = new ArrayList<>();
+	    topPlayers.add(players.get(0));
+
+	    for (int i = 1; i < players.size(); i++) {
+	        Player currentPlayer = players.get(i);
+	        if (currentPlayer.getNumberOfWins() > topPlayers.get(0).getNumberOfWins()) {
+	            topPlayers.clear();
+	            topPlayers.add(currentPlayer);
+	        } else if (currentPlayer.getNumberOfWins() == topPlayers.get(0).getNumberOfWins()) {
+	            topPlayers.add(currentPlayer);
+	        }
+	    }
+
+	    System.out.println("             - TOP PLAYERS -                      "
+	            + "\n+===================+========================+"
+	            + "\n|NAME               |# WINS                  |"
+	            + "\n+===================+========================+");
+	    
+	    for (Player player : topPlayers) {
+	        System.out.println("|" + String.format("%-19s", player.getName()) + "|" + String.format("%-24s", player.getNumberOfWins()) + "|"
+	                + "\n+-------------------+------------------------+");
+	    }
 	}
-	// saves player data
+	/**
+	 * saves the players data to the txt file
+	 * @throws IOException
+	 */
 	private void Save() throws IOException {
 		File db = new File(FILE_PATH);
 		PrintWriter pw = new PrintWriter(db);
@@ -146,14 +239,19 @@ public class GameManager {
 		pw.close();
 		
 	}
-	//loads data
+	/**
+	 * loads the players data from the txt file
+	 * @throws Exception
+	 */
 	private void loadData() throws Exception {
 		File db = new File(FILE_PATH);
 		String currentLine;
 		String[] splittedLine;
 		
 		
-		// takes the text from the file and puts it into the arraylist
+		/**
+		 * takes the text from the txt file into an arraylist
+		 */
 		if(db.exists()) {
 			Scanner fileReader = new Scanner(db);
 			
@@ -161,7 +259,7 @@ public class GameManager {
 				
 				currentLine = fileReader.nextLine();
 				splittedLine = currentLine.split(";");
-				Player p = new Player(splittedLine[0], splittedLine[1], Integer.parseInt(splittedLine[2]));
+				Player p = new Player(splittedLine[0], Integer.parseInt(splittedLine[1]), Integer.parseInt(splittedLine[2]));
 				players.add(p);
 				
 			}

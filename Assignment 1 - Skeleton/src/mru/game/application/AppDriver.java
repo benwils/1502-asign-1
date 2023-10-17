@@ -4,10 +4,15 @@ import mru.game.controller.GameManager;
 
 public class AppDriver {
 
+	
+	/**
+	 * starts the program for the game
+	 * @author benwils and aiden20217
+	 * @param args
+	 * @throws Exception
+	 */
 	public static void main(String[] args) throws Exception {
 		
-		// This is the starting point of the project!
-		// hint - It usually calls method from GameManager class to start the app, so only one or two lines will be written here
 		new GameManager();
 		
 		
